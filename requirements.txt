@@ -6,4 +6,3 @@ httpx==0.28.1
 slowapi==0.1.9
 python-multipart==0.0.20
 python-dotenv==1.0.1
-orjson==3.10.12
