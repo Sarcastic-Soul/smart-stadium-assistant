@@ -6,12 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  PROJECT_ID: promptwars-493516
-  REGION: us-central1
-  REGISTRY: us-central1-docker.pkg.dev/promptwars-493516/smart-stadium
-  GKE_CLUSTER: smart-stadium-gke
-
 jobs:
   # ── Backend Lint & Test ───────────────────────────────────────
   backend:
@@ -25,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: pip
 
       - name: Install dependencies

@@ -43,19 +43,10 @@ Frontend (React/TS)  ──▶  Backend (FastAPI)  ──▶  Groq API (Llama3)
 ## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
-- Python 3.11+, Node 20+, Docker (optional)
+- Python 3.12+
+- Node.js 20+
 
-### Option 1: Docker Compose
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your GROQ_API_KEY (optional for demo mode)
-
-docker compose up
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:8080/docs
-```
-
-### Option 2: Run Separately
+### Setup & Run
 
 **Backend:**
 ```bash
