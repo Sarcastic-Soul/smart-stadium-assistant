@@ -1,5 +1,0 @@
-# Copy this file to terraform.tfvars and fill in your values
-project_id     = "promptwars-493516"
-project_number = "139415254857"
-region         = "us-central1"
-enable_cloudsql = false

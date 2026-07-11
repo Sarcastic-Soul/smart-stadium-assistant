@@ -25,18 +25,18 @@ A full-stack platform providing real-time navigation, crowd-density analytics, s
 See [docs/architecture.md](docs/architecture.md) for the full architecture diagram.
 
 ```
-Frontend (React/TS)  ──▶  Backend (FastAPI)  ──▶  Anthropic Claude
+Frontend (React/TS)  ──▶  Backend (FastAPI)  ──▶  Groq API (Llama3)
        │                        │
-   Vite + Nginx            Uvicorn (async)
+  Vite + Vercel            Vercel Serverless
        │                        │
    i18n (4 langs)          Sensor Simulators
 ```
 
 **Tech Stack:**
-- **Backend:** Python 3.11, FastAPI, Pydantic, SlowAPI, httpx
+- **Backend:** Python 3.12, FastAPI, Pydantic, SlowAPI, httpx
 - **Frontend:** React 18, TypeScript, Vite, i18next
-- **Infrastructure:** Terraform, GKE Autopilot, Secret Manager, Artifact Registry
-- **CI/CD:** GitHub Actions → Docker → GKE
+- **Deployment:** Vercel (Unified Frontend/Backend monorepo)
+- **CI/CD:** GitHub Actions (Linting & Testing)
 
 ---
 
@@ -48,7 +48,7 @@ Frontend (React/TS)  ──▶  Backend (FastAPI)  ──▶  Anthropic Claude
 ### Option 1: Docker Compose
 ```bash
 cp backend/.env.example backend/.env
-# Edit backend/.env with your CLONEMODEL_API_KEY (optional for demo mode)
+# Edit backend/.env with your GROQ_API_KEY (optional for demo mode)
 
 docker compose up
 # Frontend: http://localhost:3000
@@ -63,6 +63,7 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+# Set GROQ_API_KEY in backend/.env
 uvicorn app.main:app --reload --port 8080
 ```
 
@@ -76,58 +77,26 @@ npm run dev
 
 ---
 
-## ☁️ GCP Deployment
+## ☁️ Vercel Deployment
 
-### Target Project
-- **Project ID:** `promptwars-493516`
-- **Project Number:** `139415254857`
-- **Region:** `us-central1`
+You can deploy both the frontend and the backend as a single unified project on Vercel:
 
-### Step 1: Create Terraform State Bucket
+### Step 1: Install Vercel CLI (optional)
 ```bash
-gsutil mb -p promptwars-493516 -l us-central1 gs://promptwars-tf-state
+npm install -g vercel
 ```
 
-### Step 2: Populate Secret Manager
+### Step 2: Configure Environment Variables on Vercel
+Set the following environment variable in the Vercel Dashboard or CLI:
+* `GROQ_API_KEY`: Your Groq API Key (e.g. starting with `gsk_...`)
+
+### Step 3: Deploy
+From the root of the repository:
 ```bash
-gcloud secrets create CLONEMODEL_API_KEY \
-  --project=promptwars-493516 \
-  --replication-policy=automatic
-
-echo -n "YOUR_ANTHROPIC_API_KEY" | \
-  gcloud secrets versions add CLONEMODEL_API_KEY \
-  --project=promptwars-493516 \
-  --data-file=-
-```
-
-### Step 3: Deploy Infrastructure
-```bash
-cd infra
-cp terraform.tfvars.example terraform.tfvars
-terraform init
-terraform plan
-terraform apply
-```
-
-### Step 4: Build & Push Images
-```bash
-REGISTRY=us-central1-docker.pkg.dev/promptwars-493516/smart-stadium
-
-gcloud auth configure-docker us-central1-docker.pkg.dev
-
-docker build -t $REGISTRY/backend:latest backend/
-docker push $REGISTRY/backend:latest
-
-docker build -t $REGISTRY/frontend:latest frontend/
-docker push $REGISTRY/frontend:latest
-```
-
-### Step 5: Deploy to GKE
-```bash
-gcloud container clusters get-credentials smart-stadium-gke \
-  --region us-central1 --project promptwars-493516
-
-kubectl apply -f infra/k8s/deployment.yaml
+vercel
+# Follow prompt to link project
+# Build Command: cd frontend && npm install && npm run build
+# Output Directory: frontend/dist
 ```
 
 ---
@@ -157,13 +126,11 @@ npm run test:e2e
 
 ## 🔐 Security
 
-- **No hard-coded secrets** – API key read from GCP Secret Manager CSI mount (`/secrets/CLONEMODEL_API_KEY`) or environment variable
+- **No hard-coded secrets** – API key read from `GROQ_API_KEY` environment variable on Vercel
 - **Rate limiting** – 10 req/min per IP on `/chat`, 60 req/min default
 - **Input sanitisation** – XSS/injection pattern stripping on all user input
 - **CORS** – Restricted to frontend origin only
-- **CSP** – Strict Content-Security-Policy headers via nginx
-- **Non-root containers** – Backend runs as unprivileged `appuser`
-- **Workload Identity** – GKE service account bound to GCP IAM for secret access
+- **CSP & Security Headers** – Provided via custom ASGI middleware
 
 ---
 
@@ -184,7 +151,7 @@ npm run test:e2e
 2. **Floor plan is static** – Stadium layout uses a simplified SVG representation
 3. **LLM fallback** – When no API key is provided, the app uses deterministic simulated responses
 4. **Single stadium** – The current implementation models one venue; multi-venue support is a future enhancement
-5. **No persistent storage** – CloudSQL is optional and disabled by default; all state is ephemeral
+5. **No persistent storage** – All state is ephemeral
 
 ---
 

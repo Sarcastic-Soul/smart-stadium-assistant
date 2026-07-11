@@ -312,7 +312,7 @@ async def ask_assistant(
         _append_history(session_id, "assistant", result.reply)
         return result
 
-    # ── Real LLM call via Anthropic Messages API ─────────────────
+    # ── Real LLM call via Groq API ───────────────────────────────
     try:
         client = _get_client()
         lang_instruction = {
@@ -332,29 +332,30 @@ async def ask_assistant(
             f"{f'Current stadium status: {sensor_ctx}' if sensor_ctx else ''}"
         )
 
-        # Build messages with history
+        # Build messages including system prompt
         history = _get_history(session_id)
-        messages = history + [{"role": "user", "content": message}]
+        messages = [
+            {"role": "system", "content": system}
+        ] + history + [{"role": "user", "content": message}]
 
         payload = {
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 1024,
-            "system": system,
+            "model": "llama3-8b-8192",
             "messages": messages,
+            "temperature": 0.5,
+            "max_tokens": 1024,
         }
 
         resp = await client.post(
-            "https://api.anthropic.com/v1/messages",
+            "https://api.groq.com/openai/v1/chat/completions",
             json=payload,
             headers={
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
             },
         )
         resp.raise_for_status()
         data = resp.json()
-        reply_text = data["content"][0]["text"]
+        reply_text = data["choices"][0]["message"]["content"]
 
         # Extract navigation route if applicable
         route = None
@@ -376,12 +377,12 @@ async def ask_assistant(
         )
 
     except httpx.HTTPError:
-        logger.exception("HTTP error during LLM call – falling back to simulator.")
+        logger.exception("HTTP error during Groq LLM call – falling back to simulator.")
         result = _build_simulated_reply(message, language, role)
         _append_history(session_id, "assistant", result.reply)
         return result
     except Exception:
-        logger.exception("Unexpected error in LLM call – falling back to simulator.")
+        logger.exception("Unexpected error in Groq LLM call – falling back to simulator.")
         result = _build_simulated_reply(message, language, role)
         _append_history(session_id, "assistant", result.reply)
         return result
