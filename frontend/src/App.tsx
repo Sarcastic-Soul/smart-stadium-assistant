@@ -6,6 +6,13 @@ import Dashboard from './components/Dashboard';
 
 type Tab = 'chat' | 'map' | 'dashboard';
 
+/**
+ * Smart Stadium Assistant - Main Application Component
+ * 
+ * Orchestrates the primary layout, navigation tabs, and global state.
+ * Passes the selected user persona (role) down to the AI Chat interface
+ * to enable real-time, context-aware Generative AI responses.
+ */
 function App() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('chat');
