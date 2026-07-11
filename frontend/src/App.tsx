@@ -10,6 +10,8 @@ function App() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('chat');
 
+  const [userRole, setUserRole] = useState<string>('fan');
+
   const changeLanguage = useCallback((lng: string) => {
     i18n.changeLanguage(lng);
   }, [i18n]);
@@ -59,6 +61,20 @@ function App() {
           </nav>
 
           <select
+            className="role-select"
+            id="role-selector"
+            aria-label="Select User Role"
+            value={userRole}
+            onChange={(e) => setUserRole(e.target.value)}
+            title="Persona"
+          >
+            <option value="fan">Fan</option>
+            <option value="staff">Staff</option>
+            <option value="volunteer">Volunteer</option>
+            <option value="organizer">Organizer</option>
+          </select>
+
+          <select
             className="lang-select"
             id="language-selector"
             aria-label={t('accessibility.languageSelect')}
@@ -76,7 +92,7 @@ function App() {
       <main className="app-main" id="main-content" role="main">
         {activeTab === 'chat' && (
           <div id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
-            <Chat language={i18n.language} />
+            <Chat language={i18n.language} role={userRole} />
           </div>
         )}
         {activeTab === 'map' && (

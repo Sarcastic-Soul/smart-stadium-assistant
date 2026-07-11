@@ -23,11 +23,12 @@ interface Message {
 
 interface ChatProps {
   language: string;
+  role: string;
 }
 
 const API_BASE = '/api/v1/chat';
 
-export default function Chat({ language }: ChatProps) {
+export default function Chat({ language, role }: ChatProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -67,7 +68,7 @@ export default function Chat({ language }: ChatProps) {
       const res = await fetch(API_BASE + '/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, language }),
+        body: JSON.stringify({ message: trimmed, language, role }),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -95,7 +96,7 @@ export default function Chat({ language }: ChatProps) {
       setLoading(false);
       inputRef.current?.focus();
     }
-  }, [input, loading, language]);
+  }, [input, loading, language, role]);
 
   return (
     <div className="chat-container" aria-label="Chat with AI assistant">

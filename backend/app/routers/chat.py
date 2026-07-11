@@ -7,7 +7,7 @@ the client accepts ``text/event-stream``.
 from __future__ import annotations
 
 import logging
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
@@ -54,10 +54,9 @@ async def chat(request: Request, payload: ChatRequest) -> ChatResponse | Streami
     * Generate operational alerts for staff.
     * Respond in EN, ES, FR, or DE.
     """
-    try:
+    import contextlib
+    with contextlib.suppress(Exception):
         limiter._check_request_limit(request, "10/minute", "", True)
-    except Exception:
-        pass
 
     clean_message = sanitise_input(payload.message)
     logger.info(

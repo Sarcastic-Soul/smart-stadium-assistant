@@ -7,6 +7,10 @@ produces realistic-looking telemetry for demonstration purposes.
 from __future__ import annotations
 
 import logging
+import time
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -22,9 +26,6 @@ from app.services.simulators import (
     generate_crowd_density,
     generate_sustainability,
 )
-import time
-from functools import wraps
-from typing import Any, Callable
 
 logger = logging.getLogger("ssa.sensors")
 

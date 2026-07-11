@@ -8,6 +8,17 @@ A full-stack platform providing real-time navigation, crowd-density analytics, s
 
 ---
 
+## 🎯 Problem Statement Alignment & Approach
+This solution directly addresses the **Smart Stadium & Tournament Operations** challenge for the FIFA World Cup 2026. 
+
+**Approach and Logic:**
+The architecture uses a persona-driven Generative AI core (Groq Llama 3) that contextually adapts its intelligence based on the user's role (Fan, Staff, Volunteer, Organizer).
+* **Navigation & Crowd Management:** Real-time simulated crowd telemetry is piped into a live heat-map. The LLM provides intelligent wayfinding algorithms and ETA calculations to help users avoid congestion.
+* **Multilingual Accessibility:** Full i18n support (English, Spanish, French, German) combined with the LLM's natural translation ensures an inclusive experience for global attendees.
+* **Operational Intelligence:** Live dashboard metrics (sustainability and alerts) give venue staff real-time decision support, allowing them to proactively manage tournament operations.
+
+---
+
 ## ✨ Features
 
 | Capability | Description |

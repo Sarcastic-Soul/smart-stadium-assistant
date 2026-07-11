@@ -18,7 +18,6 @@ from app.schemas import SupportedLanguage
 from app.security import sanitise_input
 from app.services.llm import _build_simulated_reply, _detect_facility
 
-
 # ── Fixtures ─────────────────────────────────────────────────────
 
 @pytest.fixture
@@ -129,7 +128,7 @@ async def test_languages(client: AsyncClient) -> None:
     assert resp.status_code == 200
     langs = resp.json()
     assert len(langs) == 4
-    codes = {l["code"] for l in langs}
+    codes = {lang["code"] for lang in langs}
     assert codes == {"en", "es", "fr", "de"}
 
 

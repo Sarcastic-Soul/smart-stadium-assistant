@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from typing import Optional
 
 import httpx
 
@@ -33,7 +32,7 @@ from app.services.simulators import generate_alerts, generate_crowd_density
 logger = logging.getLogger("ssa.llm")
 
 # ── Reusable async HTTP client (connection-pooled) ──────────────
-_http_client: Optional[httpx.AsyncClient] = None
+_http_client: httpx.AsyncClient | None = None
 
 
 def _get_client() -> httpx.AsyncClient:
@@ -52,7 +51,7 @@ _MAX_HISTORY = 10
 _session_history: dict[str, list[dict[str, str]]] = defaultdict(list)
 
 
-def _get_history(session_id: Optional[str]) -> list[dict[str, str]]:
+def _get_history(session_id: str | None) -> list[dict[str, str]]:
     """Return conversation history for a session (up to _MAX_HISTORY)."""
     if not session_id:
         return []
@@ -60,7 +59,7 @@ def _get_history(session_id: Optional[str]) -> list[dict[str, str]]:
 
 
 def _append_history(
-    session_id: Optional[str], role: str, content: str
+    session_id: str | None, role: str, content: str
 ) -> None:
     """Append a message to session history."""
     if session_id:
@@ -122,7 +121,7 @@ _LANG_PREFIX: dict[SupportedLanguage, str] = {
 }
 
 
-def _detect_facility(message: str) -> Optional[str]:
+def _detect_facility(message: str) -> str | None:
     """Return the first matching facility keyword, or None."""
     msg = message.lower()
     for facility in _FACILITY_COORDS:
@@ -286,7 +285,7 @@ async def ask_assistant(
     message: str,
     language: SupportedLanguage = SupportedLanguage.EN,
     role: UserRole = UserRole.FAN,
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
 ) -> ChatResponse:
     """Send a message to the LLM and return a structured response.
 

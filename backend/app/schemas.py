@@ -8,10 +8,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ── Chat ─────────────────────────────────────────────────────────
 
@@ -50,7 +48,7 @@ class ChatRequest(BaseModel):
         default=UserRole.FAN,
         description="User persona – fan, staff, volunteer, or organizer.",
     )
-    session_id: Optional[str] = Field(
+    session_id: str | None = Field(
         default=None,
         max_length=64,
         pattern=r"^[a-zA-Z0-9_-]+$",
@@ -69,15 +67,15 @@ class Waypoint(BaseModel):
 
     lat: float = Field(..., ge=-90, le=90)
     lng: float = Field(..., ge=-180, le=180)
-    label: Optional[str] = None
+    label: str | None = None
 
 
 class NavigationRoute(BaseModel):
     """Turn-by-turn route with estimated time of arrival."""
 
     waypoints: list[Waypoint] = []
-    eta_minutes: Optional[float] = None
-    distance_meters: Optional[float] = None
+    eta_minutes: float | None = None
+    distance_meters: float | None = None
 
 
 class ChatResponse(BaseModel):
@@ -85,8 +83,8 @@ class ChatResponse(BaseModel):
 
     reply: str
     language: SupportedLanguage
-    route: Optional[NavigationRoute] = None
-    alert: Optional[str] = None
+    route: NavigationRoute | None = None
+    alert: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -113,7 +111,7 @@ class CrowdDensity(BaseModel):
     zone: ZoneId
     density_pct: float = Field(..., ge=0, le=100, description="Occupancy percentage.")
     headcount: int = Field(..., ge=0)
-    recommendation: Optional[str] = None
+    recommendation: str | None = None
 
 
 class SustainabilityMetrics(BaseModel):
