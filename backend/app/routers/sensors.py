@@ -7,10 +7,6 @@ produces realistic-looking telemetry for demonstration purposes.
 from __future__ import annotations
 
 import logging
-import time
-from collections.abc import Callable
-from functools import wraps
-from typing import Any
 
 from fastapi import APIRouter
 
@@ -26,24 +22,9 @@ from app.services.simulators import (
     generate_crowd_density,
     generate_sustainability,
 )
+from app.utils import ttl_cache
 
 logger = logging.getLogger("ssa.sensors")
-
-def ttl_cache(ttl_seconds: int = 10) -> Callable:
-    """Simple synchronous TTL cache for FastAPI endpoints."""
-    def decorator(func: Callable) -> Callable:
-        cache: dict[str, Any] = {}
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            now = time.time()
-            if "result" in cache and now - cache["timestamp"] < ttl_seconds:
-                return cache["result"]
-            result = func(*args, **kwargs)
-            cache["result"] = result
-            cache["timestamp"] = now
-            return result
-        return wrapper
-    return decorator
 
 router = APIRouter()
 

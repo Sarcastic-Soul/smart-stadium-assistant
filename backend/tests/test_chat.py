@@ -300,3 +300,92 @@ def test_detect_facility_accessible() -> None:
 
 def test_detect_facility_parking() -> None:
     assert _detect_facility("Where is the shuttle?") == "parking"
+
+
+# ── Unit Tests: Utils ────────────────────────────────────────────
+
+def test_ttl_cache_returns_cached_value() -> None:
+    """TTL cache should return the same value within the TTL window."""
+    from app.utils import ttl_cache
+
+    call_count = 0
+
+    @ttl_cache(ttl_seconds=60)
+    def expensive():
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    assert expensive() == 1
+    assert expensive() == 1  # cached
+    assert call_count == 1
+
+
+# ── Unit Tests: Sensor Context ───────────────────────────────────
+
+def test_sensor_context_returns_string() -> None:
+    from app.services.llm import _get_sensor_context
+    ctx = _get_sensor_context()
+    assert isinstance(ctx, str)
+
+
+def test_role_context_fan() -> None:
+    from app.schemas import UserRole
+    from app.services.llm import _get_role_context
+    ctx = _get_role_context(UserRole.FAN)
+    assert "fan" in ctx.lower()
+
+
+def test_role_context_organizer() -> None:
+    from app.schemas import UserRole
+    from app.services.llm import _get_role_context
+    ctx = _get_role_context(UserRole.ORGANIZER)
+    assert "organizer" in ctx.lower()
+
+
+# ── Integration Tests: Groq API mock ────────────────────────────
+
+@pytest.mark.anyio
+async def test_chat_with_mocked_groq(client: AsyncClient) -> None:
+    """Verify the Groq LLM call path works with a mocked API response."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status = MagicMock()
+    mock_response.json.return_value = {
+        "choices": [{"message": {"content": "Hello from Groq!"}}]
+    }
+
+    with patch("app.services.llm.get_api_key", return_value="fake-key"), \
+         patch("app.services.llm._get_client") as mock_client:
+        mock_client.return_value.post = AsyncMock(return_value=mock_response)
+        resp = await client.post(
+            "/api/v1/chat/",
+            json={"message": "Hello", "language": "en"},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["reply"] == "Hello from Groq!"
+
+
+@pytest.mark.anyio
+async def test_chat_groq_error_falls_back(client: AsyncClient) -> None:
+    """Verify that a Groq API error gracefully falls back to the simulator."""
+    from unittest.mock import AsyncMock, patch
+
+    import httpx
+
+    with patch("app.services.llm.get_api_key", return_value="fake-key"), \
+         patch("app.services.llm._get_client") as mock_client:
+        mock_client.return_value.post = AsyncMock(
+            side_effect=httpx.HTTPError("Connection failed")
+        )
+        resp = await client.post(
+            "/api/v1/chat/",
+            json={"message": "Hello", "language": "en"},
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "World Cup" in data["reply"]  # Fallback simulator response
+

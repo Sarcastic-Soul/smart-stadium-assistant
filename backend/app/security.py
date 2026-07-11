@@ -48,7 +48,7 @@ def get_api_key() -> str:
     """
     env_key = os.getenv("GROQ_API_KEY", "")
     if env_key:
-        logger.info("GROQ API key loaded from environment variable.")
+        logger.debug("GROQ API key loaded from environment variable.")
         return env_key
 
     logger.warning(

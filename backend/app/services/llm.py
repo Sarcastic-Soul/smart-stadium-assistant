@@ -1,8 +1,9 @@
-"""LLM service – interface to the Anthropic Claude API.
+"""LLM service – interface to the Groq API (Llama 3).
 
-When an API key is available, real LLM calls are made.  Otherwise, a
-deterministic simulator provides canned responses so the app remains
-functional during demos and tests.
+When an API key is available, real LLM calls are made via the Groq
+chat completions endpoint.  Otherwise, a deterministic simulator
+provides canned responses so the app remains functional during demos
+and tests.
 
 Features:
   - In-memory conversation history (per session)
@@ -32,18 +33,23 @@ from app.services.simulators import generate_alerts, generate_crowd_density
 logger = logging.getLogger("ssa.llm")
 
 # ── Reusable async HTTP client (connection-pooled) ──────────────
-_http_client: httpx.AsyncClient | None = None
+_client_store: dict[str, httpx.AsyncClient] = {}
 
 
 def _get_client() -> httpx.AsyncClient:
-    """Lazy-initialise a connection-pooled async HTTP client."""
-    global _http_client  # noqa: PLW0603
-    if _http_client is None or _http_client.is_closed:
-        _http_client = httpx.AsyncClient(
+    """Lazy-initialise a connection-pooled async HTTP client.
+
+    Uses a module-level dict instead of ``global`` to avoid the PLW0603
+    anti-pattern while still providing singleton semantics.
+    """
+    client = _client_store.get("default")
+    if client is None or client.is_closed:
+        client = httpx.AsyncClient(
             timeout=httpx.Timeout(30.0, connect=10.0),
             limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
         )
-    return _http_client
+        _client_store["default"] = client
+    return client
 
 
 # ── Session Memory (bounded per-session history) ────────────────
@@ -375,13 +381,8 @@ async def ask_assistant(
             route=route,
         )
 
-    except httpx.HTTPError:
-        logger.exception("HTTP error during Groq LLM call – falling back to simulator.")
-        result = _build_simulated_reply(message, language, role)
-        _append_history(session_id, "assistant", result.reply)
-        return result
-    except Exception:
-        logger.exception("Unexpected error in Groq LLM call – falling back to simulator.")
+    except (httpx.HTTPError, Exception):
+        logger.exception("Groq LLM call failed – falling back to simulator.")
         result = _build_simulated_reply(message, language, role)
         _append_history(session_id, "assistant", result.reply)
         return result

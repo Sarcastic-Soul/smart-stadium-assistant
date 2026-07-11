@@ -23,6 +23,13 @@ function zoneName(z: string): string {
   return z.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * Dashboard component — sustainability metrics and operational alerts.
+ *
+ * Displays real-time energy, water, waste, and carbon offset metrics
+ * alongside severity-tagged operational alerts for venue staff.
+ * Data refreshes automatically every 15 seconds.
+ */
 export default function Dashboard() {
   const { t } = useTranslation();
   const [metrics, setMetrics] = useState<Sustainability | null>(null);

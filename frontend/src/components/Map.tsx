@@ -32,6 +32,13 @@ function zoneName(z: string): string {
   return z.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * Map component — interactive SVG stadium floor plan with crowd-density heat-map.
+ *
+ * Fetches live crowd sensor data from the backend every 15 seconds and
+ * renders colour-coded zones with occupancy percentages, headcounts,
+ * and AI-generated crowd management recommendations.
+ */
 export default function Map() {
   const { t } = useTranslation();
   const [crowd, setCrowd] = useState<CrowdData[]>([]);

@@ -53,4 +53,22 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByLabelText(/Send message/i)).toBeInTheDocument();
   });
+
+  it('has a role selector', () => {
+    render(<App />);
+    expect(screen.getByLabelText(/Select User Role/i)).toBeInTheDocument();
+  });
+
+  it('renders all role options', () => {
+    render(<App />);
+    const roleSelect = screen.getByLabelText(/Select User Role/i) as HTMLSelectElement;
+    const options = Array.from(roleSelect.options).map((o) => o.value);
+    expect(options).toEqual(['fan', 'staff', 'volunteer', 'organizer']);
+  });
+
+  it('defaults to fan role', () => {
+    render(<App />);
+    const roleSelect = screen.getByLabelText(/Select User Role/i) as HTMLSelectElement;
+    expect(roleSelect.value).toBe('fan');
+  });
 });

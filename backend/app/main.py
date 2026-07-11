@@ -16,7 +16,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from app.routers import chat, sensors
 from app.security import limiter
@@ -40,7 +40,9 @@ logger = logging.getLogger("ssa")
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Inject security headers into every response."""
 
-    async def dispatch(self, request: Request, call_next):  # noqa: ANN001
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         """Add security headers to the response."""
         response: Response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -110,12 +112,12 @@ def create_app() -> FastAPI:
     # ── Health Check ─────────────────────────────────────────────
     @app.get("/healthz", tags=["Health"])
     async def healthz() -> dict[str, str]:
-        """Liveness probe for Kubernetes."""
+        """Liveness probe – confirms the application is running."""
         return {"status": "ok"}
 
     @app.get("/readyz", tags=["Health"])
     async def readyz() -> dict[str, str]:
-        """Readiness probe for Kubernetes."""
+        """Readiness probe – confirms the application can serve traffic."""
         return {"status": "ready"}
 
     return app

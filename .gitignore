@@ -33,14 +33,6 @@ frontend/build/
 .env.*.local
 backend/.env
 
-# Terraform
-infra/.terraform/
-infra/*.tfstate
-infra/*.tfstate.*
-infra/*.tfvars
-infra/.terraform.lock.hcl
-infra/crash.log
-
 # IDE
 .vscode/
 .idea/

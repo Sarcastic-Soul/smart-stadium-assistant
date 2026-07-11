@@ -19,6 +19,7 @@ interface Message {
   text: string;
   route?: Route;
   timestamp: Date;
+  isError?: boolean;
 }
 
 interface ChatProps {
@@ -28,6 +29,13 @@ interface ChatProps {
 
 const API_BASE = '/api/v1/chat';
 
+/**
+ * Chat component — multilingual conversational AI interface.
+ *
+ * Sends user messages to the backend chat endpoint, receives AI-generated
+ * replies (with optional navigation routes), and renders the conversation
+ * as a scrollable message log with SSE streaming support.
+ */
 export default function Chat({ language, role }: ChatProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
@@ -90,6 +98,7 @@ export default function Chat({ language, role }: ChatProps) {
           role: 'assistant',
           text: '⚠️ Could not reach the assistant. Please try again.',
           timestamp: new Date(),
+          isError: true,
         },
       ]);
     } finally {
@@ -110,8 +119,10 @@ export default function Chat({ language, role }: ChatProps) {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`chat-bubble ${msg.role}`}
+            className={`chat-bubble ${msg.role} ${msg.isError ? 'error' : ''}`}
             aria-label={msg.role === 'user' ? 'Your message' : 'Assistant reply'}
+            role={msg.isError ? 'alert' : undefined}
+            aria-live={msg.isError ? 'assertive' : undefined}
           >
             {msg.text}
             {msg.route && msg.route.waypoints.length > 0 && (

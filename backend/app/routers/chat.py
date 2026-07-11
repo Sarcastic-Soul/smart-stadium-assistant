@@ -6,6 +6,7 @@ the client accepts ``text/event-stream``.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from collections.abc import AsyncIterator
 
@@ -54,7 +55,6 @@ async def chat(request: Request, payload: ChatRequest) -> ChatResponse | Streami
     * Generate operational alerts for staff.
     * Respond in EN, ES, FR, or DE.
     """
-    import contextlib
     with contextlib.suppress(Exception):
         limiter._check_request_limit(request, "10/minute", "", True)
 
